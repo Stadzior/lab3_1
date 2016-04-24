@@ -54,4 +54,19 @@ public class BookKeeperTest {
 		//Assert
         Assert.assertThat(invoice.getItems().size(),equalTo(1));
 	}
+
+    @Test
+    public void ShouldCallCalculateTaxTwice_WhenRequestedTwoPositionInvoice(){
+
+        //Arrange
+        request.add(item);
+        request.add(item);
+
+        //Act
+        Invoice invoice = bookKeeper.issuance(request,policy);
+
+        //Assert
+        Mockito.verify(policy, Mockito.times(2)).calculateTax(
+                data.getType(), data.getPrice());
+    }
 }
