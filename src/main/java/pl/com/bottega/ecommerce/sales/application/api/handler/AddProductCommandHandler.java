@@ -51,7 +51,7 @@ public class AddProductCommandHandler implements CommandHandler<AddProductComman
 		
 		Product product = productRepository.load(command.getProductId());
 		
-		if (! product.isAvailable()){
+		if (!product.isAvailable()){
 			Client client = loadClient();	
 			product = suggestionService.suggestEquivalent(product, client);
 		}

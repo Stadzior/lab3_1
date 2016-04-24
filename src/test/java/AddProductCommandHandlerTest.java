@@ -1,3 +1,4 @@
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -19,6 +20,7 @@ import pl.com.bottega.ecommerce.system.application.SystemUser;
 
 import java.util.Date;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -42,8 +44,10 @@ public class AddProductCommandHandlerTest {
         handler = new AddProductCommandHandler();
         product = new Product(Id.generate(),new Money(1),"Test", ProductType.DRUG);
         equivalent = new Product(Id.generate(),new Money(2),"Test Equivalent", ProductType.DRUG);
-        command = new AddProductCommand(Id.generate(),Id.generate(),1);
-        clientData = new ClientData(Id.generate(),"John");
+        Id orderId = Id.generate();
+        command = new AddProductCommand(orderId,product.getId(),1);
+        Id clientId = Id.generate();
+        clientData = new ClientData(clientId,"John");
         client = new Client();
         reservation = new Reservation(Id.generate(), Reservation.ReservationStatus.OPENED, clientData,new Date());
 
@@ -69,22 +73,46 @@ public class AddProductCommandHandlerTest {
     @Test
     public void ShouldCallSuggestEquivalentOnce_WhenProductIsNotAvailable(){
         //Arrange
+
         //Act
+        product.markAsRemoved();
+        handler.handle(command);
         //Assert
+        Mockito.verify(suggestionService, Mockito.times(1)).suggestEquivalent(product, client);
     }
 
     @Test
     public void ShouldCallReservationLoadAndSaveOnce(){
         //Arrange
+
         //Act
+        handler.handle(command);
         //Assert
+        Mockito.verify(reservationRepository, Mockito.times(1)).load(command.getOrderId());
+        Mockito.verify(reservationRepository, Mockito.times(1)).save(reservation);
     }
 
     @Test
-    public void IsProductAddedToReservationRepository_WhenItIsAvailable(){
+         public void IsProductAddedToReservation_WhenItIsAvailable(){
         //Arrange
 
         //Act
+        handler.handle(command);
+        Id reservedProductId = reservation.getReservedProducts().get(0).getProductId();
+        Id productId = equivalent.getId();
         //Assert
+        Assert.assertThat(reservedProductId,equalTo(productId));
+    }
+
+    @Test
+    public void IsEquivalentAddedToReservation_WhenProductIsNotAvailable(){
+        //Arrange
+
+        //Act
+        handler.handle(command);
+        Id reservedProductId = reservation.getReservedProducts().get(0).getProductId();
+        Id productId = equivalent.getId();
+        //Assert
+        Assert.assertThat(reservedProductId,equalTo(productId));
     }
 }
