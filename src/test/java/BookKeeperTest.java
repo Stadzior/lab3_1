@@ -66,7 +66,32 @@ public class BookKeeperTest {
         Invoice invoice = bookKeeper.issuance(request,policy);
 
         //Assert
-        Mockito.verify(policy, Mockito.times(2)).calculateTax(
-                data.getType(), data.getPrice());
+        Mockito.verify(policy, Mockito.times(2)).calculateTax(data.getType(), data.getPrice());
+    }
+
+    @Test
+    public void ShouldReturnEmptyInvoice_WhenRequestedInvoiceWithoutPositions(){
+
+        //Arrange
+
+        //Act
+        Invoice invoice = bookKeeper.issuance(request,policy);
+
+        //Assert
+        Assert.assertThat(invoice.getItems().size(),equalTo(0));
+    }
+
+    @Test
+    public void ShouldCallInvoiceFactoryCreate_WhetherOrNotRequestIncludesPositions(){
+
+        //Arrange
+        request.add(item);
+        request.add(item);
+
+        //Act
+        Invoice invoice = bookKeeper.issuance(request,policy);
+
+        //Assert
+        Mockito.verify(invoicer, Mockito.atLeastOnce()).create(client);
     }
 }
