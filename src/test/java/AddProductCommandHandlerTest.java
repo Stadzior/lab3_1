@@ -1,8 +1,6 @@
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.application.api.command.AddProductCommand;
@@ -19,10 +17,9 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 import pl.com.bottega.ecommerce.system.application.SystemContext;
 import pl.com.bottega.ecommerce.system.application.SystemUser;
 
-import java.util.ArrayList;
 import java.util.Date;
 
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -40,7 +37,6 @@ public class AddProductCommandHandlerTest {
     Product product,equivalent;
     ClientData clientData;
     Client client;
-    ArrayList<Reservation> reservations;
     @Before
     public void initialize(){
         handler = new AddProductCommandHandler();
@@ -50,16 +46,11 @@ public class AddProductCommandHandlerTest {
         clientData = new ClientData(Id.generate(),"John");
         client = new Client();
         reservation = new Reservation(Id.generate(), Reservation.ReservationStatus.OPENED, clientData,new Date());
-        reservations = new ArrayList<>();
+
         reservationRepository = Mockito.mock(ReservationRepository.class);
         when(reservationRepository.load(command.getOrderId())).thenReturn(reservation);
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+        doNothing().when(reservationRepository).save(reservation);
 
-                return null;
-            }
-        }).when(reservationRepository).save(reservation);
         productRepository = Mockito.mock(ProductRepository.class);
         when(productRepository.load(product.getId())).thenReturn(product);
 
