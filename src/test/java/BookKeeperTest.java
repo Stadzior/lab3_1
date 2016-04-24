@@ -1,3 +1,4 @@
+import builder.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,16 +30,33 @@ public class BookKeeperTest {
     public void initialize(){
         Money money = new Money(1);
         invoicer = Mockito.mock(InvoiceFactory.class);
-        client = new ClientData(Id.generate(),"John");
+        client = new ClientDataBuilder()
+                .withId(Id.generate())
+                .withName("John").build();
+
         when(invoicer.create(client)).thenReturn(new Invoice(Id.generate(), client));
 
-        bookKeeper = new BookKeeper(invoicer);
-        data = new ProductData(Id.generate(),money,"Test", ProductType.DRUG,new Date());
-        item = new RequestItem(data,1,data.getPrice());
+        bookKeeper = new BookKeeperBuilder()
+                .withInvoiceFactory(invoicer).build();
+
+        data = new ProductDataBuilder()
+                .withProductId(Id.generate())
+                .withPrice(money)
+                .withName("Test")
+                .withType(ProductType.DRUG)
+                .withSnapshotDate(new Date()).build();
+
+        item = new RequestItemBuilder()
+                .withProductData(data)
+                .withQuantity(1)
+                .withTotalCost(data.getPrice()).build();
+
         policy = Mockito.mock(TaxPolicy.class);
+        
         when(policy.calculateTax(data.getType(),data.getPrice())).thenReturn(new Tax(money, ""));
 
-        request = new InvoiceRequest(client);
+        request = new InvoiceRequestBuilder()
+                .withClientData(client).build();
 
     }
 
